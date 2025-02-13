@@ -68,9 +68,10 @@ def main():
                 playerClicks.append(sqSelected)
                 move = ChessEngine.Move(playerClicks[0],playerClicks[1],gs.board)
 
-                if move in validMoves:
-                   gs.makeMove(move)
-                   moveMade = True
+                for i in range(len(validMoves)):
+                    if move == validMoves[i]:
+                        gs.makeMove(validMoves[i])
+                        moveMade = True
                 sqSelected=()
                 playerClicks=[]
 
