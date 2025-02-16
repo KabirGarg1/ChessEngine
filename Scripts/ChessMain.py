@@ -12,11 +12,27 @@ def loadImages():
     for piece in pieces:
         IMAGES[piece] = py.transform.scale(py.image.load("pieces_images/"+piece+".png"),(SQ_SIZE,SQ_SIZE))
 
-def drawBoard_and_Pieces(screen,gs):
+def highlightSquares(screen,gs,validMoves,sqSelected):
+    if sqSelected != ():
+        r,c = sqSelected
+        if gs.board[r][c][0] == ("w" if gs.whiteToMove else "b"):
+            s = py.Surface((SQ_SIZE,SQ_SIZE))
+            s.set_alpha(100)#transperency value
+            s.fill(py.Color('blue'))
+            screen.blit(s,(c*SQ_SIZE,r*SQ_SIZE))
+            s.fill(py.Color('yellow'))
+            for move in validMoves:
+                if move.startRow == r and move.startCol == c:
+                    screen.blit(s,(SQ_SIZE*move.endCol,SQ_SIZE*move.endRow))
+
+
+def drawBoard_and_Pieces(screen,gs,validMoves,sqSelected):
     drawBoard(screen)
+    highlightSquares(screen,gs,validMoves,sqSelected)
     drawPieces(screen,gs.board)
 
 def drawBoard(screen):
+    global colors
     colors=[py.Color("white"),py.Color("Brown")]
     for r in range(DIMENSION):
         for c in range(DIMENSION):
@@ -28,6 +44,28 @@ def drawPieces(screen,board):
         for c in range(DIMENSION):
             if board[r][c] != "--":
                 screen.blit(IMAGES[board[r][c]],py.Rect(c*SQ_SIZE,r*SQ_SIZE,SQ_SIZE,SQ_SIZE))
+
+def animateMove(move,screen,board,clock):
+    global colors
+    dR = move.endRow - move.startRow
+    dC = move.endCol - move.startCol
+    framesPerSquare = 10
+    frameCount = (abs(dR) + abs(dC))*framesPerSquare
+    for frame in range(frameCount+1):
+        r,c = (move.startRow + dR*frame/frameCount, move.startCol + dC*frame/frameCount)
+        drawBoard(screen)
+        drawPieces(screen,board)
+
+    # erase the piece moved from its ending square
+    color = colors[(move.endCol + move.endRow)%2]
+    endSquare = py.Rect(move.endCol*SQ_SIZE, move.endRow*SQ_SIZE,SQ_SIZE,SQ_SIZE)
+    py.draw.rect(screen,color,endSquare)
+    #draw moving pieces
+    if move.pieceCaptured != "--":
+        screen.blit(IMAGES[move.pieceCaptured],endSquare)
+    screen.blit(IMAGES[move.pieceMoved],py.Rect(c*SQ_SIZE,r*SQ_SIZE,SQ_SIZE,SQ_SIZE))
+    py.display.flip()
+    clock.tick(60)
 
 def main():
     py.init
@@ -80,11 +118,13 @@ def main():
                 if event.key == py.K_z:
                   gs.undoMove()
         if moveMade:
+            #animateMove(gs.moveLog[-1],screen,gs.board,clock)
             moveMade == False
             validMoves = gs.getValidMoves()
-        drawBoard_and_Pieces(screen,gs)
+        drawBoard_and_Pieces(screen,gs,validMoves,sqSelected)
         clock.tick(MAX_FPS)
         py.display.flip()
+
 
 if __name__ == "__main__":
     main()
