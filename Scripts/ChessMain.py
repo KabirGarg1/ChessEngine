@@ -1,5 +1,6 @@
 import pygame as py
 import ChessEngine
+import SmartMoveFinder
 
 WIDTH = HEIGHT = 512
 DIMENSION= 8
@@ -79,23 +80,28 @@ def main():
 
     sqSelected=()
     playerClicks=[]
+    playerOne = False #Player White
+    playerTwo = False #Playr Black
     running = True
     while running:
+        humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for event in py.event.get():
             if event.type == py.QUIT:
                 running = False
             elif event.type == py.MOUSEBUTTONDOWN:
-                location = py.mouse.get_pos()
-                col = location[0]//SQ_SIZE
-                row = location[1]//SQ_SIZE
-                sqSelected=(row,col)
-                playerClicks.append(sqSelected)
+                if humanTurn:
+                    location = py.mouse.get_pos()
+                    col = location[0]//SQ_SIZE
+                    row = location[1]//SQ_SIZE
+                    sqSelected=(row,col)
+                    playerClicks.append(sqSelected)
                 
 
             elif event.type == py.MOUSEBUTTONUP:
-                location = py.mouse.get_pos()
-                col = location[0]//SQ_SIZE
-                row = location[1]//SQ_SIZE
+                if humanTurn:
+                    location = py.mouse.get_pos()
+                    col = location[0]//SQ_SIZE
+                    row = location[1]//SQ_SIZE
 
                 if playerClicks[0]==(row,col):
                     sqSelected=()
@@ -117,6 +123,14 @@ def main():
             elif event.type == py.KEYDOWN:
                 if event.key == py.K_z:
                   gs.undoMove()
+
+        #AI move Finder Logic
+        if not humanTurn:
+            AImove = SmartMoveFinder.findBestMove(gs,validMoves) if not None else SmartMoveFinder.findRandomMove(validMoves)
+            
+            gs.makeMove(AImove)
+            moveMade = True
+
         if moveMade:
             #animateMove(gs.moveLog[-1],screen,gs.board,clock)
             moveMade == False
