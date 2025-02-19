@@ -80,7 +80,7 @@ def main():
 
     sqSelected=()
     playerClicks=[]
-    playerOne = False #Player White
+    playerOne = True #Player White
     playerTwo = False #Playr Black
     running = True
     while running:
@@ -126,7 +126,7 @@ def main():
 
         #AI move Finder Logic
         if not humanTurn:
-            AImove = SmartMoveFinder.findBestMove(gs,validMoves) if not None else SmartMoveFinder.findRandomMove(validMoves)
+            AImove = SmartMoveFinder.bestMoveMinMax(gs,validMoves) if not None else SmartMoveFinder.findRandomMove(validMoves)
             
             gs.makeMove(AImove)
             moveMade = True
