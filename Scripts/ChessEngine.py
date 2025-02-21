@@ -248,6 +248,7 @@ class GameState():
                     self.blackKingLocation=(r,c)
 
         return moves
+    
     def squarUnderAttack(self,r,c):
         checks = []
         inCheck = False
@@ -320,7 +321,7 @@ class GameState():
         return moves
 
     def getQueensideCastleMoves(self,r,c,moves,allyColor):
-        if self.board[r][c-1] == "--" and self.board[r][c-2] == "--" and self.board[r][c-3]:
+        if self.board[r][c-1] == "--" and self.board[r][c-2] == "--" and self.board[r][c-3] == "--":
             if not self.squarUnderAttack(r,c-1) and not self.squarUnderAttack(r,c-2):
                 moves.append(Move((r,c),(r,c-2),self.board,isCastleMove = True))
         return moves
@@ -486,11 +487,26 @@ class GameState():
 
                 if c>0 and (self.board[r+1][c-1][0] == "w" or self.enPassantPossible == (r+1,c-1)):
                     if not piecePinned or pinDirection == (1,-1):
-                        moves.append(Move((r,c),(r+1,c-1),self.board,self.enPassantPossible == (r+1,c-1)))
+                        move = Move((r,c),(r+1,c-1),self.board,self.enPassantPossible == (r+1,c-1))
+                        self.makeMove(move)
+                        self.whiteToMove = not self.whiteToMove
+                        inCheck,pins,checks = self.checkForPinsAndChecks()
+                        self.whiteToMove = not self.whiteToMove
+                        self.undoMove()
+                        if not inCheck:
+                            moves.append(Move((r,c),(r+1,c-1),self.board,self.enPassantPossible == (r+1,c-1)))
 
                 if c<7 and (self.board[r+1][c+1][0] == "w" or self.enPassantPossible == (r+1,c+1)):
                     if not piecePinned or pinDirection == (1,1):
-                        moves.append(Move((r,c),(r+1,c+1),self.board,self.enPassantPossible == (r+1,c+1)))
+                        move = Move((r,c),(r+1,c+1),self.board,self.enPassantPossible == (r+1,c+1))
+                        self.makeMove(move)
+                        self.whiteToMove = not self.whiteToMove
+                        inCheck,pins,checks = self.checkForPinsAndChecks()
+                        self.whiteToMove = not self.whiteToMove
+                        self.undoMove()
+                        if not inCheck:
+                            moves.append(Move((r,c),(r+1,c+1),self.board,self.enPassantPossible == (r+1,c+1)))
+
             return moves
     
         def getWhitePawnMove():
@@ -503,17 +519,32 @@ class GameState():
 
                 if c>0 and (self.board[r-1][c-1][0] == "b" or self.enPassantPossible == (r-1,c-1)):
                     if not piecePinned or pinDirection == (-1,-1):
-                        moves.append(Move((r,c),(r-1,c-1),self.board,self.enPassantPossible == (r-1,c-1)))
+                        move = Move((r,c),(r-1,c-1),self.board,self.enPassantPossible == (r-1,c-1))
+                        self.makeMove(move)
+                        self.whiteToMove = not self.whiteToMove
+                        inCheck,pins,checks = self.checkForPinsAndChecks()
+                        self.whiteToMove = not self.whiteToMove
+                        self.undoMove()
+                        if not inCheck:
+                            moves.append(Move((r,c),(r-1,c-1),self.board,self.enPassantPossible == (r-1,c-1)))
+                        
+                        
 
                 if c<7 and (self.board[r-1][c+1][0] == "b" or self.enPassantPossible == (r-1,c+1)):
                     if not piecePinned or pinDirection == (-1,1):
-                        moves.append(Move((r,c),(r-1,c+1),self.board,self.enPassantPossible == (r-1,c+1)))
+                        move = Move((r,c),(r-1,c+1),self.board,self.enPassantPossible == (r-1,c+1))
+                        self.makeMove(move)
+                        self.whiteToMove = not self.whiteToMove
+                        inCheck,pins,checks = self.checkForPinsAndChecks()
+                        self.whiteToMove = not self.whiteToMove
+                        self.undoMove()
+                        if not inCheck:
+                            moves.append(Move((r,c),(r-1,c+1),self.board,self.enPassantPossible == (r-1,c+1)))
             return moves
         
         if self.whiteToMove:
             return getWhitePawnMove()
         return getBlackPawnMove()
-
 
 class CastleRights():
     def __init__(self,wks,bks,wqs,bqs):

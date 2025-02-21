@@ -1,9 +1,95 @@
 import random
 
+# Pawn table: Encourages advancement and central control.
+WHITE_PAWN_TABLE = [
+    [2, 3, 4, 5, 5, 4, 3, 2],
+    [1, 2, 3, 4, 4, 3, 2, 1],
+    [0, 1, 2, 3, 3, 2, 1, 0],
+    [-1, 0, 1, 2, 2, 1, 0, -1],
+    [-1, 0, 1, 2, 2, 1, 0, -1],
+    [-1, -1, 0, 1, 1, 0, -1, -1],
+    [-2, -1, -1, 0, 0, -1, -1, -2],
+    [-2, -2, -2, -2, -2, -2, -2, -2]
+]
+
+BLACK_PAWN_TABLE = [
+    [-2, -2, -2, -2, -2, -2, -2, -2],
+    [-2, -1, -1, 0, 0, -1, -1, -2],
+    [-1, -1, 0, 1, 1, 0, -1, -1],
+    [-1, 0, 1, 2, 2, 1, 0, -1],
+    [-1, 0, 1, 2, 2, 1, 0, -1],
+    [0, 1, 2, 3, 3, 2, 1, 0],
+    [1, 2, 3, 4, 4, 3, 2, 1],
+    [2, 3, 4, 5, 5, 4, 3, 2]
+]
+
+# Knight table: Central squares are more attractive.
+KNIGHT_TABLE = [
+    [-2, -1, -1, -1, -1, -1, -1, -2],
+    [-1,  0,  1,  1,  1,  1,  0, -1],
+    [-1,  1,  2,  3,  3,  2,  1, -1],
+    [-1,  1,  3,  4,  4,  3,  1, -1],
+    [-1,  1,  3,  4,  4,  3,  1, -1],
+    [-1,  1,  2,  3,  3,  2,  1, -1],
+    [-1,  0,  1,  1,  1,  1,  0, -1],
+    [-2, -1, -1, -1, -1, -1, -1, -2]
+]
+
+# Bishop table: Slightly lower values than knights.
+BISHOP_TABLE = [
+    [-2, -1, -1, -1, -1, -1, -1, -2],
+    [-1,  0,  1,  1,  1,  1,  0, -1],
+    [-1,  1,  2,  2,  2,  2,  1, -1],
+    [-1,  1,  2,  3,  3,  2,  1, -1],
+    [-1,  1,  2,  3,  3,  2,  1, -1],
+    [-1,  1,  2,  2,  2,  2,  1, -1],
+    [-1,  0,  1,  1,  1,  1,  0, -1],
+    [-2, -1, -1, -1, -1, -1, -1, -2]
+]
+
+# Rook table: Encourages open file usage.
+ROOK_TABLE = [
+    [-2, -1, -1,  0,  0, -1, -1, -2],
+    [-1,  0,  0,  1,  1,  0,  0, -1],
+    [-1,  0,  0,  1,  1,  0,  0, -1],
+    [ 0,  1,  1,  2,  2,  1,  1,  0],
+    [ 0,  1,  1,  2,  2,  1,  1,  0],
+    [-1,  0,  0,  1,  1,  0,  0, -1],
+    [-1,  0,  0,  1,  1,  0,  0, -1],
+    [-2, -1, -1,  0,  0, -1, -1, -2]
+]
+
+# Queen table: Combines elements of both rook and bishop.
+QUEEN_TABLE = [
+    [-2, -1, -1, -1, -1, -1, -1, -2],
+    [-1,  0,  0,  0,  0,  0,  0, -1],
+    [-1,  0,  1,  1,  1,  1,  0, -1],
+    [-1,  0,  1,  2,  2,  1,  0, -1],
+    [-1,  0,  1,  2,  2,  1,  0, -1],
+    [-1,  0,  1,  1,  1,  1,  0, -1],
+    [-1,  0,  0,  0,  0,  0,  0, -1],
+    [-2, -1, -1, -1, -1, -1, -1, -2]
+]
+
+# King table: Favors safer, more centralized positions.
+KING_TABLE = [
+    [-2, -2, -2, -2, -2, -2, -2, -2],
+    [-2, -1, -1, -1, -1, -1, -1, -2],
+    [-2, -1,  0,  0,  0,  0, -1, -2],
+    [-2, -1,  0,  1,  1,  0, -1, -2],
+    [-2, -1,  0,  1,  1,  0, -1, -2],
+    [-2, -1,  0,  0,  0,  0, -1, -2],
+    [-2, -1, -1, -1, -1, -1, -1, -2],
+    [-2, -2, -2, -2, -2, -2, -2, -2]
+]
+
+
+
+piecePositionScores = {"wp":WHITE_PAWN_TABLE,"bp":BLACK_PAWN_TABLE,"K":KING_TABLE,"Q":QUEEN_TABLE,"N":KNIGHT_TABLE,"B":BISHOP_TABLE,"R":ROOK_TABLE}
 pieceValue = {"K":1000, "Q":9, "B":3.1, "R":5, "N":3, "p":1}
 CHECKMATE = 1000
 STALEMATE = 0
-DEPTH = 3
+DEPTH = 4
 def findRandomMove(validMoves):
     return validMoves[random.randint(0,len(validMoves)-1)]
 
@@ -38,28 +124,31 @@ def bestMoveMinMax(gs,validMoves):
     global nextMove
     nextMove = None
     random.shuffle(validMoves)
-    findMoveMinMax(gs,validMoves,DEPTH,gs.whiteToMove)
+    turnMultiplier = 1 if gs.whiteToMove else -1
+    findMoveMinMax(gs,validMoves,DEPTH,turnMultiplier,-CHECKMATE,CHECKMATE)
     return nextMove
 
-def findMoveMinMax(gs,validMoves,depth,whiteToMove):
+def findMoveMinMax(gs,validMoves,depth,turnMultiplier,alpha,beta): #ALPHA IS CURRENT MAX AND BETA IS CURRENT MINIMUM SCORE
     global nextMove
+
     if depth == 0:
-        return scoreAndMaterialCount(gs)
+        return turnMultiplier*scoreAndMaterialCount(gs)
 
-    turnMultiplier = -1 if whiteToMove else 1
-    isNextWhiteMove =  False if whiteToMove else True
-
-    maxScore = turnMultiplier*CHECKMATE
+    maxScore = -CHECKMATE
     for move in validMoves:
         gs.makeMove(move)
-        nextValidMoves = gs.getValidMoves()
-        score = findMoveMinMax(gs,nextValidMoves,depth-1,isNextWhiteMove)
-        if (whiteToMove and score>maxScore) or (not whiteToMove and score<maxScore):
+        nextValidMoves = gs.getValidMoves() 
+        score = -findMoveMinMax(gs,nextValidMoves,depth-1,-turnMultiplier,-beta,-alpha)
+        if score>maxScore:
             maxScore = score
             if depth == DEPTH:
                 nextMove = move
         gs.undoMove()
+        alpha = max(alpha,maxScore)
+        if alpha>=beta:
+            break
     return maxScore
+
 
 
 def scoreAndMaterialCount(gs):
@@ -76,9 +165,17 @@ def scoreAndMaterialCount(gs):
     score=0
     for r in range(8):
         for c in range(8):
-            if gs.board[r][c][0] == "w":
-                white_Material += pieceValue[gs.board[r][c][1]]
-            elif gs.board[r][c][0] == "b":
-                black_Material += pieceValue[gs.board[r][c][1]]
+            if gs.board[r][c] != "--":
+                piece = gs.board[r][c]
+                if piece[1] == "p":
+                    piecePositionScore = piecePositionScores[piece][r][c]*0.1
+                else:
+                    piecePositionScore = piecePositionScores[piece[1]][r][c]*0.3
+                if gs.inCheck:
+                    piecePositionScore+=0.3
+                if piece[0] == "w":
+                    white_Material += pieceValue[piece[1]] + piecePositionScore
+                elif piece[0] == "b":
+                    black_Material += pieceValue[piece[1]] + piecePositionScore
     score = white_Material - black_Material
     return score
